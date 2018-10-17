@@ -1,0 +1,51 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="${%yetusdir}" field="basedir">
+    <f:textbox name="yetusdir" default="yetus" value="${yetusdir}"/>
+  </f:entry>
+  <f:entry title="${%basedir}" field="basedir">
+    <f:textbox name="basedir" default="src" value="${basedir}"/>
+  </f:entry>
+  <f:entry title="${%patchdir}" field="patchdir">
+    <f:textbox name="patchdir" default="out" value="${patchdir}"/>
+  </f:entry>
+  <f:entry title="${%project}" field="project">
+    <f:textbox name="project" value="${project}"/>
+  </f:entry>
+  <f:entry title="${%emptypatch}" field="emptypatch" description="${%emptypatchDesc}">
+    <f:checkbox/>
+  </f:entry>
+  <f:radioBlock name="docker" value="False"
+    title="Docker Mode"
+  checked="${instance.docker==false}">
+    <f:entry title="${%dockerfile}" field="dockerfile">
+      <f:textbox/>
+    </f:entry>
+  </f:radioBlock>
+
+  <f:advanced>
+    <f:entry title="${%sentinel}" field="sentinel" description="${%sentinelDesc}">
+      <f:checkbox/>
+    </f:entry>
+    <f:entry title="${%mvncustomrepos}" field="mvncustomrepos" description="${%mvncustomreposDesc}">
+      <f:checkbox/>
+    </f:entry>
+  </f:advanced>
+</j:jelly>
