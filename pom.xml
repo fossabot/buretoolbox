@@ -118,23 +118,30 @@
               <artifactId>checkstyle</artifactId>
               <version>${checkstyle.version}</version>
             </dependency>
+            <dependency>
+              <groupId>org.apache.yetus</groupId>
+              <artifactId>yetus-checkstyle</artifactId>
+              <version>${project.version}</version>
+            </dependency>
           </dependencies>
-          <executions>
-            <execution>
-              <id>validate</id>
-              <phase>validate</phase>
-              <configuration>
-                <configLocation>checkstyle.xml</configLocation>
-                <encoding>UTF-8</encoding>
-                <consoleOutput>true</consoleOutput>
-                <failsOnError>true</failsOnError>
-                <linkXRef>false</linkXRef>
-              </configuration>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
+          <configuration>
+            <configLocation>checkstyle.xml</configLocation>
+          </configuration>
+          <!-- configuration>
+            <encoding>UTF-8</encoding>
+            <consoleOutput>true</consoleOutput>
+            <failsOnError>false</failsOnError>
+            <linkXRef>false</linkXRef>
+            <checkstyleRules>
+              <module name="Checker">
+                <module name="SuppressWarningsFilter" />
+                <module name="TreeWalker">
+                  <module name="SuppressionCommentFilter"/>
+                  <module name="SuppressWarningsHolder" />
+                </module>
+              </module>
+            </checkstyleRules>
+          </configuration -->
         </plugin>
 
         <plugin>
@@ -346,22 +353,12 @@
         </reportSets>
       </plugin>
 
-      <!-- plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${maven-checkstyle-plugin.version}</version>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>checkstyle</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin -->
     </plugins>
   </reporting>
 
   <modules>
+    <module>yetus-checkstyle</module>
+    <module>yetus-minimaven-plugin</module>
     <module>yetus-assemblies</module>
     <module>audience-annotations-component</module>
     <module>yetus-maven-plugin</module>
