@@ -100,7 +100,15 @@ function golang_filefilter
       add_test golang
       add_test compile
     fi
-  fi
+}
+
+## @description  check for golang compiler errors
+## @audience     private
+## @stability    stable
+## @replaceable  no
+function golang_precompile
+{
+  GOMOD_DIRS_CONTROL=reset
 }
 
 ## @description  check for golang compiler errors
