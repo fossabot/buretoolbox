@@ -177,3 +177,20 @@ function golang_clean
 {
   git_checkout_force
 }
+
+## @description  Check for golang-specific tests
+## @audience     private
+## @stability    evolving
+## @replaceable  no
+## @param        filename
+## @return       0 = success
+## @return       1 = failure
+function golang_test4tests
+{
+  declare fn=$1
+
+  if [[ "${fn}" =~ test.go ]]; then
+    return 0
+  fi
+  return 1
+}

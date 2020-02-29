@@ -851,6 +851,21 @@ function maven_cc_logfilter
     | "${SED}" -e "s,^${BASEDIR}/,," \
     | sort \
     > "${output}"
+}
 
-  # shortpath:linenum:column: message
+## @description  Check for maven-specific tests
+## @audience     private
+## @stability    evolving
+## @replaceable  no
+## @param        filename
+## @return       0 = success
+## @return       1 = failure
+function maven_test4tests
+{
+  declare fn=$1
+
+  if [[ "${fn}" =~ (^|/)test/ ]]; then
+    return 0
+  fi
+  return 1
 }
