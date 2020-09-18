@@ -7,7 +7,7 @@ import pkgutil
 from plugin import BuretoolboxPlugin
 
 
-class BuretoolboxPluginHandler():
+class PluginHandler():
     """Upon creation, this class will read the plugins package for modules
     that contain a class definition that is inheriting from the BuretoolboxPlugin class
     """

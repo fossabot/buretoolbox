@@ -2,8 +2,12 @@
 
 """ Define a module """
 
+import logging
 import os
+import re
 import utils
+import timekeeper
+import plugin
 
 # pylint: disable=too-many-instance-attributes, too-few-public-methods
 class Module():
@@ -35,7 +39,7 @@ def file_fragment(dirfrag=None):
     dirfrag = dirfrag.replace(str(os.altsep), '_')
     return dirfrag
 
-def argsubst(args=None, modname=None, filename=None):
+def argsubst(config, args=None, modname=None, filename=None):
     """ take module and print the fragment """
     if not args:
         return None
@@ -45,11 +49,11 @@ def argsubst(args=None, modname=None, filename=None):
         if arg:
             newarg = arg.replace('@@@MODULEFN@@@', filename).replace(
                 '@@@MODULEDIR@@@',
-                os.path.join(config['basedir'], modname))
+                os.path.join(config.get('basedir'), modname))
             newargs.append(newarg)
     return newargs
 
-def workerloop(self,
+def workerloop(coordinator,
                module=None,
                repostatus=None,
                testname=None,
@@ -68,39 +72,40 @@ def workerloop(self,
 
     curdir = os.getcwd()
     moddir = module
-    moddir = modname_conversion(module=moddir)
+    moddir = modname_conversion(config=coordinator.config, module=moddir)
     if not moddir:
-        yetus.error('WARNING: %s no longer exists; skipping' %
+        logging.error('WARNING: %s no longer exists; skipping' %
                     (module.name))
         return 0
 
     logf = '-'.join([repostatus, testname, fn + '.txt'])
 
-    newargs = yetus.pluginsobj.plugins['buildtools'].plugins[
-        yetus.config.get('buildtool')].executor()
+    newargs = coordinator.pluginhandler['buildtools'].plugins[
+        coordinator.config.get('buildtool')].executor()
 
     if argv:
-        newargs2 = argsubst(args=argv, fn=fn, modname=module.name)
+        newargs2 = argsubst(config=coordinator.config, args=argv, filename=fn, modname=module.name)
         newargs = newargs + newargs2
 
     if module.extraparams:
-        newargs3 = argsubst(args=module.extraparams,
-                                 fn=fn,
-                                 modname=module.name)
+        newargs3 = argsubst(config=coordinator.config,
+                            args=module.extraparams,
+                            filename=fn,
+                            modname=module.name)
         newargs = newargs + newargs3
 
     os.chdir(moddir)
-    timer = yetusclock.YetusClock()
-    retval = yetus.print_and_redirect(args=newargs,
-                                      logfile=os.path.join(
-                                          yetus.config.get('workdir'),
-                                          logf))
+    timer = timekeeper()
+    retval = utils.print_and_redirect(args=newargs,
+                                      logfilename=os.path.join(
+                                      coordinator.config.get('workdir'),
+                                      logf))
     timer.stop()
     os.chdir(curdir)
     module.timer = timer.result()
 
     if testname == 'compile':
-        module.compile_log = os.path.join(yetus.config.get('workdir'),
+        module.compile_log = os.path.join(coordinator.config.get('workdir'),
                                           logf)
 
     if retval > 0:
@@ -110,14 +115,14 @@ def workerloop(self,
     module.set_status('+1', logf)
     return retval
 
-def worker(modules=None, repostatus=None, testname=None, args=None):
+def worker(coordinator, modules=None, repostatus=None, testname=None, args=None):
     #testname = kwargs.get('testname', None)
     #modules = kwargs.get('modules', None)
     #repostatus = kwargs.get('repostatus', 'patch')
-    if yetus.config.get('buildmode') == 'full':
+    if coordinator.config.get('buildmode') == 'full':
         repo = 'the source'
     elif repostatus == 'branch':
-        repo = yetus.config.get('patch_branch')
+        repo = coordinator.config.get('patch_branch')
     else:
         repo = 'the patch'
 
@@ -126,7 +131,8 @@ def worker(modules=None, repostatus=None, testname=None, args=None):
 
         suffix = file_fragment(module.name)
 
-        result = result + workerloop(args=args,
+        result = result + workerloop(coordinator=coordinator,
+                                    args=args,
                                           module=module,
                                           repostatus=repostatus,
                                           testname=testname)
@@ -147,15 +153,15 @@ def worker(modules=None, repostatus=None, testname=None, args=None):
 
     return result
 
-def modname_conversion(module=None, btcwd=None):
+def modname_conversion(config, module=None, btcwd=None):
     if not btcwd:
-        btcwd = yetus.config.get('buildtoolcwd', 'module')
-    if btcwd == 'basedir' or btcwd == '.':
+        btcwd = config.get('buildtoolcwd', 'module')
+    if btcwd in ('basedir', '.'):
         btcwd = '@@@BASEDIR@@@'
     elif btcwd == 'module':
         btcwd = '@@@MODULEDIR@@@'
 
-    basedir = yetus.config.get('basedir')
+    basedir = config.get('basedir')
     if module:
         btcwd = btcwd.replace('@@@MODULEDIR@@@', module.name)
     btcwd = btcwd.replace('@@@BASEDIR@@@', basedir)
@@ -165,17 +171,17 @@ def modname_conversion(module=None, btcwd=None):
 
     return btcwd
 
-def buildtool_cwd(module=None, btcwd=None):
+def buildtool_cwd(coordinator, module=None, btcwd=None):
     dirabs = btcwd
-    dirabs = modname_conversion(module=module, btcwd=dirabs)
+    dirabs = modname_conversion(config=coordinator.config, module=module, btcwd=dirabs)
 
     if os.path.isabs(dirabs):
         if not os.path.exists(dirabs):
             try:
                 os.makedirs(dirabs)
             except OSError as e:
-                yetus.error('ERROR: Unable to create %s: %s' % (dirabs, e))
-                yetus.fail_run()
+                logging.error('ERROR: Unable to create %s: %s' % (dirabs, e))
+                coordinator.fail_run()
                 return False
         if os.chdir(dirabs):
             return True
