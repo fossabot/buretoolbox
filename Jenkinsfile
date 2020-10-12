@@ -61,6 +61,8 @@ pipeline {
                            usernameVariable: 'JIRA_USER')]) {
             sh '''#!/usr/bin/env bash
 
+                env
+
                 USE_DOCKER_FLAG=${USE_DOCKER_FLAG:-true}
 
                 # clean and make a new directory for our output artifacts, temporary
@@ -189,6 +191,19 @@ pipeline {
         } catch(e) {
             echo 'junit processing: ' + e.toString()
         }
+
+
+        try {
+	           recordIssues(
+		          tool: junitParser(pattern: '**/junit-report.xml'),
+              enabledForFailure: true,
+              qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]]
+	           )
+        } catch(e) {
+            echo 'warningsng processing: ' + e.toString()
+        }
+
+
         archiveArtifacts "${env.YETUS_RELATIVE_PATCHDIR}/**"
         // Publish the HTML report so that it can be looked at
         // Has to be relative to WORKSPACE.

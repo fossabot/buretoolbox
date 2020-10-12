@@ -158,8 +158,7 @@ function junit_finalreport
 
 cat << EOF > "${JUNIT_REPORT_XML}"
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-    <testsuite tests="1" failures="'${result}'" time="1" name="Apache Yetus">
+<testsuite tests="1" failures="'${result}'" time="1" name="Apache Yetus">
 EOF
 
   i=0
@@ -192,7 +191,7 @@ EOF
     fi
 
     {
-      printf "<testcase id=\"%s\" classname=\"%s\" name=\"%s\" failures=\"%s\" tests=\"1\" time=\"%s\">" \
+      printf "\t<testcase id=\"%s\" classname=\"%s\" name=\"%s\" failures=\"%s\" tests=\"1\" time=\"%s\">" \
         "${subs}.${counter}" \
         "${subs}" \
         "${subs}" \
@@ -200,7 +199,7 @@ EOF
         "${ela}"
       if [[ "${failures}" == 1 ]]; then
         comment=$(escape_html "${comment}")
-        printf "<failure message=\"%s\">" "${comment}"
+        printf "\t\t<failure message=\"%s\">" "${comment}"
 
         if [[ -n "${logfile}" ]]; then
           if [[ -n "${url}" ]]; then
@@ -210,14 +209,12 @@ EOF
           fi
           escape_html "${footcomment}"
         fi
-        echo "</failure>"
+        printf "\t\t</failure>\n"
       fi
-      echo "</testcase>"
+      printf "\t</testcase>"
     } >> "${JUNIT_REPORT_XML}"
 
     ((i=i+1))
   done
-
   echo "</testsuite>" >> "${JUNIT_REPORT_XML}"
-  echo "</testsuites>" >> "${JUNIT_REPORT_XML}"
 }
