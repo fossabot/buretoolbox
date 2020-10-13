@@ -51,12 +51,27 @@ end
 activate :directory_indexes
 activate :syntax
 activate :livereload
+activate :breadcrumbs, separator: '/', wrapper: :li
 
 # Per-page layout changes
 page '/*.xml', layout: false
 page '/*.json', layout: false
 page '/*.txt', layout: false
 page '.htaccess.apache', layout: false
+
+def page_title(site_name, separator = ' – ')
+  local_title = current_page.data.title or page_heading
+  [local_title, site_name].compact.join(separator)
+end
+
+def page_heading(title = nil, options = {})
+  if title
+    @page_heading = title
+    content_tag(:h1, title, options)
+  else
+    @page_heading
+  end
+end
 
 # classes needed to publish our api docs
 class CopyInPlaceResource < ::Middleman::Sitemap::Resource

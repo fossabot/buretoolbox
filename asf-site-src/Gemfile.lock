@@ -1,4 +1,12 @@
 GIT
+  remote: https://github.com/aw-was-here/middleman-breadcrumbs.git
+  revision: b526242bab617e9a1ba982e05e0bc00a6f3598c7
+  ref: fix-directory-indexes
+  specs:
+    middleman-breadcrumbs (0.4.2)
+      middleman (>= 4.0.0)
+
+GIT
   remote: https://github.com/middleman/middleman-syntax.git
   revision: ad7bcde8eb14f1fa79d943511949670cd93de91e
   specs:
@@ -131,6 +139,7 @@ PLATFORMS
 DEPENDENCIES
   kramdown-parser-gfm
   middleman (~> 4.3)
+  middleman-breadcrumbs!
   middleman-livereload
   middleman-syntax!
   therubyracer

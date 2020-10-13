@@ -20,7 +20,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Apache Yetus</title>
+        <title><%= page_title || "No Title" %></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
         <meta name="author" content="">
@@ -35,9 +35,10 @@
   </head>
     <body>
       <%= partial "header" %>
+      HERE: <%= breadcrumbs(current_page) %>
       <div class="container">
         <%= yield %>
-    </div>
+      </div>
       <%= partial "footer" %>
   </body>
 </html>

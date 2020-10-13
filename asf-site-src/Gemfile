@@ -39,4 +39,6 @@ gem 'therubyracer'
 
 gem 'kramdown-parser-gfm'
 
+gem 'middleman-breadcrumbs', github: 'aw-was-here/middleman-breadcrumbs', ref: 'fix-directory-indexes'
+
 # rubocop:enable Style/HashSyntax, Style/SymbolArray
