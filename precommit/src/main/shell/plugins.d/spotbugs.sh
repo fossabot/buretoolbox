@@ -161,6 +161,7 @@ function spotbugs_runner
 
     warnings_file="${PATCH_DIR}/${name}-spotbugs-${fn}-warnings"
 
+    # Merge all of the spotbugs reports for this module into one
     if [[ "${#files[@]}" -lt 1 ]]; then
       module_status "${i}" 0 "" "${name}/${module} no spotbugs output file (${targetfile})"
       ((i=i+1))
@@ -174,6 +175,8 @@ function spotbugs_runner
 
     popd >/dev/null || return 1
 
+
+    # Set the name of the reports to match what is being worked on
     if [[ ${name} == branch ]]; then
       "${SPOTBUGS_HOME}/bin/setBugDatabaseInfo" -name "${PATCH_BRANCH}" \
           "${warnings_file}.xml" "${warnings_file}.xml"
@@ -200,6 +203,7 @@ function spotbugs_runner
       continue
     fi
 
+    # Make an HTML version of the XML for reporting later
     if ! "${SPOTBUGS_HOME}/bin/convertXmlToText" -html \
       "${warnings_file}.xml" \
       "${warnings_file}.html"; then
@@ -271,6 +275,8 @@ function spotbugs_preapply
     fi
 
     warnings_file="${PATCH_DIR}/branch-spotbugs-${fn}-warnings"
+
+    # if it doesn't exist, nothing to do here, and keep going
     if [[ ! -f "${warnings_file}.xml" ]]; then
       savestop=$(stop_clock)
       MODULE_STATUS_TIMER[${modindex}]=${savestop}
@@ -278,6 +284,7 @@ function spotbugs_preapply
       continue
     fi
 
+    # get the number of warnings
     # shellcheck disable=SC2016
     module_spotbugs_warnings=$("${SPOTBUGS_HOME}/bin/filterBugs" -first \
         "${PATCH_BRANCH}" \
@@ -285,6 +292,7 @@ function spotbugs_preapply
         "${warnings_file}.xml" \
         | "${AWK}" '{print $1}')
 
+    # we got warnings! Convert XML to HTML and put them in the log , if requested
     if [[ ${module_spotbugs_warnings} -gt 0 ]] ; then
       msg="${module} in ${PATCH_BRANCH} has ${module_spotbugs_warnings} extant spotbugs warnings."
       if [[ "${SPOTBUGS_WARNINGS_FAIL_PRECHECK}" = "true" ]]; then
@@ -375,10 +383,13 @@ function spotbugs_postinstall
       module=root
     fi
 
+    # take the branch and patch XMLs, and merge them into one
+    # so we can do operations...
     combined_xml="${PATCH_DIR}/combined-spotbugs-${fn}.xml"
     branchxml="${PATCH_DIR}/branch-spotbugs-${fn}-warnings.xml"
     patchxml="${PATCH_DIR}/patch-spotbugs-${fn}-warnings.xml"
 
+    # re-count our branch warnings if possible
     if [[ -f "${branchxml}" ]]; then
       # shellcheck disable=SC2016
       branch_warnings=$("${SPOTBUGS_HOME}/bin/filterBugs" -first \
@@ -387,12 +398,16 @@ function spotbugs_postinstall
           "${branchxml}" \
           | ${AWK} '{print $1}')
     else
+      # if branch doesn't exist, we are likely doing a full build
+      # so just set it to be the same as the patch file for later
       branchxml=${patchxml}
     fi
 
     newbugsbase="${PATCH_DIR}/new-spotbugs-${fn}"
     fixedbugsbase="${PATCH_DIR}/fixed-spotbugs-${fn}"
 
+    # if both old and new DBs do not exist, then something has gone
+    # horribly wrong.
     if [[ ! -f "${branchxml}" ]] && [[ ! -f "${patchxml}" ]]; then
       module_status "${i}" 0 "" "${module} has no data from spotbugs"
       ((result=result+1))
@@ -402,6 +417,22 @@ function spotbugs_postinstall
       popd >/dev/null || return 1
       continue
     fi
+
+    # only the old DB exists.  which, given we check for failures earlier,
+    # means that the patch has yanked whatever spotbugs was going to
+    # run against.
+    if [[ -f "${branchxml}" ]] && [[ ! -f "${patchxml}" ]]; then
+      statstring=$(generic_calcdiff_status "${branch_warnings}" "0" "0")
+      module_status "${i}" +1 "" "${module} ${statstring}"
+      summarize=false
+      savestop=$(stop_clock)
+      MODULE_STATUS_TIMER[${i}]=${savestop}
+      ((i=i+1))
+      popd >/dev/null || return 1
+      continue
+    fi
+
+    # ok, from here on out, we have two DBs to compare
 
     echo ""
 
@@ -425,6 +456,7 @@ function spotbugs_postinstall
         "${patchxml}" \
         | ${AWK} '{print $1}')
 
+    # figure out how many were added
     #shellcheck disable=SC2016
     add_warnings=$("${SPOTBUGS_HOME}/bin/filterBugs" -first patch \
         "${combined_xml}" "${newbugsbase}.xml" | ${AWK} '{print $1}')
