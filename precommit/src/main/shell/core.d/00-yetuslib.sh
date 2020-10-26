@@ -40,6 +40,25 @@ function yetus_debug
   fi
 }
 
+## @description  print the command line and then run it
+## @audience     public
+## @stability    stable
+## @param        command
+## @param        [..]
+## @replaceable  no
+## @return       $?
+function yetus_echo_and_run
+{
+  # to the log
+  {
+    date
+    echo "cd $(pwd)"
+    echo "${*}"
+  }
+  # run the actual command
+  "${@}"
+}
+
 ## @description  run the command, sending stdout and stderr to the given filename
 ## @audience     public
 ## @stability    stable

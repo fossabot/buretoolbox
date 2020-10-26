@@ -170,7 +170,7 @@ function spotbugs_runner
     elif [[ "${#files[@]}" -eq 1 ]]; then
       cp -p "${files[0]}" "${warnings_file}.xml"
     else
-      "${SPOTBUGS_HOME}/bin/unionBugs" -withMessages -output "${warnings_file}.xml" "${files[@]}"
+      yetus_echo_and_run "${SPOTBUGS_HOME}/bin/unionBugs" -withMessages -output "${warnings_file}.xml" "${files[@]}"
     fi
 
     popd >/dev/null || return 1
@@ -178,11 +178,11 @@ function spotbugs_runner
 
     # Set the name of the reports to match what is being worked on
     if [[ ${name} == branch ]]; then
-      "${SPOTBUGS_HOME}/bin/setBugDatabaseInfo" -name "${PATCH_BRANCH}" \
+      yetus_echo_and_run "${SPOTBUGS_HOME}/bin/setBugDatabaseInfo" -name "${PATCH_BRANCH}" \
           "${warnings_file}.xml" "${warnings_file}.xml"
       retval=$?
     else
-      "${SPOTBUGS_HOME}/bin/setBugDatabaseInfo" -name patch \
+      yetus_echo_and_run "${SPOTBUGS_HOME}/bin/setBugDatabaseInfo" -name patch \
           "${warnings_file}.xml" "${warnings_file}.xml"
       retval=$?
     fi
@@ -204,7 +204,7 @@ function spotbugs_runner
     fi
 
     # Make an HTML version of the XML for reporting later
-    if ! "${SPOTBUGS_HOME}/bin/convertXmlToText" -html \
+    if ! yetus_echo_and_run "${SPOTBUGS_HOME}/bin/convertXmlToText" -html \
       "${warnings_file}.xml" \
       "${warnings_file}.html"; then
       savestop=$(stop_clock)
@@ -437,7 +437,7 @@ function spotbugs_postinstall
 
     echo ""
 
-    if ! "${SPOTBUGS_HOME}/bin/computeBugHistory" -useAnalysisTimes -withMessages \
+    if ! yetus_echo_and_run "${SPOTBUGS_HOME}/bin/computeBugHistory" -useAnalysisTimes -withMessages \
             -output "${combined_xml}" \
             "${branchxml}" \
             "${patchxml}"; then
@@ -488,7 +488,7 @@ function spotbugs_postinstall
 
     statstring=$(generic_calcdiff_status "${branch_warnings}" "${patch_warnings}" "${add_warnings}")
 
-    if ! "${SPOTBUGS_HOME}/bin/convertXmlToText" -html "${newbugsbase}.xml" \
+    if ! yetus_echo_and_run "${SPOTBUGS_HOME}/bin/convertXmlToText" -html "${newbugsbase}.xml" \
         "${newbugsbase}.html"; then
       module_status "${i}" -1 "" "${module} cannot run convertXmlToText from spotbugs"
       ((result=result+1))
