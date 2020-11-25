@@ -19,7 +19,7 @@ add_test_type golang
 GOEXE=$(command -v go 2>/dev/null)
 
 declare -a GOMOD_DIRS
-GOMOD_DIRS_CONTROL=reset
+GOMOD_DIRS_CONTROL="" # empty string to start with so it resets on first run
 
 ## @description  Usage info for go plugin
 ## @audience     private
@@ -52,11 +52,13 @@ function golang_parse_args
 ## @audience     public
 ## @stability    evolving
 ## @replaceable  yes
+## @parameter    branch/patch
 function golang_gomod_find
 {
+  declare repostatus=$1
   declare input
 
-  if [[ "${GOMOD_DIRS_CONTROL}" == reset ]]; then
+  if [[ -z "${GOMOD_DIRS_CONTROL}"  || "${GOMOD_DIRS_CONTROL}" != "${repostatus}" ]]; then
     GOMOD_DIRS=()
     while read -r; do
       if [[ ! "${REPLY}" =~ /vendor/ ]] &&
@@ -65,7 +67,7 @@ function golang_gomod_find
         GOMOD_DIRS+=("${input}")
       fi
     done < <(find "${BASEDIR}" -name go.mod)
-    GOMOD_DIRS_CONTROL=filled
+    GOMOD_DIRS_CONTROL=${repostatus}
   fi
 }
 
@@ -79,7 +81,9 @@ function golang_gomod_file
 {
   declare fn=${1}
 
-  yetus_find_deepest_directory GOMOD_DIRS "${BASEDIR}/${fn}"
+  if [[ "${#GOMOD_DIRS[@]}" -gt 0 ]]; then
+    yetus_find_deepest_directory GOMOD_DIRS "${BASEDIR}/${fn}"
+  fi
 }
 
 
@@ -91,7 +95,8 @@ function golang_filefilter
 {
   declare filename=$1
 
-  golang_gomod_find
+  # prime the pump with just the branch
+  golang_gomod_find ""
 
   if [[ "${filename}" =~ \.(c|h|go|s|cc)$ ]] ||
      [[ "${filename}" =~ go.mod$ ]]; then
@@ -109,7 +114,7 @@ function golang_filefilter
 ## @replaceable  no
 function golang_precompile
 {
-  GOMOD_DIRS_CONTROL=reset
+  golang_gomod_find "$1"
 }
 
 ## @description  check for golang compiler errors

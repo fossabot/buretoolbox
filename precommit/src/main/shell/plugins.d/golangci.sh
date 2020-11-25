@@ -93,20 +93,22 @@ function golangcilint_exec
     args+=("--config" "${GOLANGCI_CONFIG}")
   fi
 
-  golang_gomod_find
+  golang_gomod_find "${repostatus}"
 
   for d in "${GOMOD_DIRS[@]}"; do
-    pushd "${d}" >/dev/null || return 1
-    while read -r; do
-      p=$(yetus_relative_dir "${BASEDIR}" "${d}")
-      if [[ -n "${p}" ]]; then
-        p="${p}/"
-      fi
-      echo "${p}${REPLY}" >> "${PATCH_DIR}/${repostatus}-golangcilint-result.txt"
-    done < <("${GOLANGCI_LINT}" run "${args[@]}" ./... 2>&1 \
-      | "${gargs[@]}" \
-      | sort -t : -k 1,1 -k 2,2n -k 3,3n -k 4)
-    popd >/dev/null || return 1
+    if [[ -d "${d}" ]]; then
+      pushd "${d}" >/dev/null || return 1
+      while read -r; do
+        p=$(yetus_relative_dir "${BASEDIR}" "${d}")
+        if [[ -n "${p}" ]]; then
+          p="${p}/"
+        fi
+        echo "${p}${REPLY}" >> "${PATCH_DIR}/${repostatus}-golangcilint-result.txt"
+      done < <("${GOLANGCI_LINT}" run "${args[@]}" ./... 2>&1 \
+        | "${gargs[@]}" \
+        | sort -t : -k 1,1 -k 2,2n -k 3,3n -k 4)
+      popd >/dev/null || return 1
+    fi
   done
   return 0
 }
