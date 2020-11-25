@@ -93,6 +93,7 @@ function golangcilint_exec
     args+=("--config" "${GOLANGCI_CONFIG}")
   fi
 
+  set -x
   golang_gomod_find "${repostatus}"
 
   for d in "${GOMOD_DIRS[@]}"; do
@@ -110,6 +111,7 @@ function golangcilint_exec
       popd >/dev/null || return 1
     fi
   done
+  set +x
   return 0
 }
 
