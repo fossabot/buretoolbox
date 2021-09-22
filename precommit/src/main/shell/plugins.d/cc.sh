@@ -67,9 +67,12 @@ function cc_logfilter
   declare input=$1
   declare output=$2
 
+  # need these seds because of how Apache Hadoop other
+  # systems do weird things to get C/C++ compiled
   #shellcheck disable=SC1117
   "${GREP}" -i -E "^.*\.${CC_EXT_RE}\:[[:digit:]]*\:" "${input}" \
-    | "${SED}" -e "s,^${BASEDIR}/,," \
+    | "${SED}" -E -e 's,\[(ERROR|WARNING)\] ,,' \
+                  -e "s,^${BASEDIR}/,," \
     | sort \
     > "${output}"
 }
