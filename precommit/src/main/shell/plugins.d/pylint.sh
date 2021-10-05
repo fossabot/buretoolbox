@@ -99,6 +99,20 @@ function pylint_calcdiffs
   column_calcdiffs "$@"
 }
 
+function pylint_catproc
+{
+  echo "$1 failed, attempting individual package install"
+  packages=yetus_file_to_array "$1"
+  for pkg in "${PACKAGES[@]}"; do
+    strippkg=${pkg// *#*/}
+    strippkg=${strippkg//#*/}
+    if [[ -n "${strippkg}" ]]; then
+      echo  "${PYLINT_PIP_CMD}" install "${pylintopts[@]}" "${strippkg}"
+      "${PYLINT_PIP_CMD}" install "${pylintopts[@]}" "${strippkg}" || true
+    fi
+  done
+}
+
 function pylint_executor
 {
   declare repostatus=$1
@@ -122,7 +136,7 @@ function pylint_executor
   offset_clock "${PYLINT_TIMER}"
 
   if [[ "${PYLINT_REQUIREMENTS}" == true ]]; then
-    echo "Processing all requirements.txt files. Errors will be ignored."
+    echo "Processing all requirements.txt files."
 
     if [[ "${PYLINT_PIP_USER}" == true ]]; then
       pylintopts=("--user")
@@ -138,7 +152,8 @@ function pylint_executor
     done
     yetus_sort_and_unique_array reqfiles
     for i in "${reqfiles[@]}"; do
-      "${PYLINT_PIP_CMD}" install "${pylintopts[@]}" -r "${i}" || true
+      echo "${PYLINT_PIP_CMD}" installx "${pylintopts[@]}" -r "${i}"
+      "${PYLINT_PIP_CMD}" installx "${pylintopts[@]}" -r "${i}" || pylint_catproc "${i}"
     done
     oldpp=${PYTHONPATH}
     for i in "${HOME}/.local/lib/python"*/site-packages; do
