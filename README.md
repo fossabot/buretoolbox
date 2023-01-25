@@ -17,7 +17,12 @@
   under the License.
 -->
 
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Feffectivemachines%2Fburetoolbox.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Feffectivemachines%2Fburetoolbox?ref=badge_large)
+
 # Apache Yetus
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Feffectivemachines%2Fburetoolbox.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Feffectivemachines%2Fburetoolbox?ref=badge_shield)
+
 
 Apache Yetus is a collection of libraries and tools that enable
 contribution and release process for software projects.
